@@ -5,7 +5,7 @@ import wx
 import hashlib
 import string
 import random
-from passlib.hash import sha512_crypt
+from passlib.hash import sha512_crypt, sha256_crypt
 
 class PWHashUI(wx.Frame):
 
@@ -25,6 +25,7 @@ class PWHashUI(wx.Frame):
         self.algos["SHA384"] = (lambda p: hashlib.sha384(p.encode('utf-8')).hexdigest(), False)
         self.algos["SHA512"] = (lambda p: hashlib.sha512(p.encode('utf-8')).hexdigest(), False)
         self.algos["Crypt SHA512"] = (lambda p, s: sha512_crypt.encrypt(p, salt=s, rounds=5000), True)
+        self.algos["Crypt SHA256"] = (lambda p, s: sha256_crypt.encrypt(p, salt=s, rounds=5000), True)
 
     def InitUI(self):
         panel = wx.Panel(self)
@@ -70,20 +71,20 @@ class PWHashUI(wx.Frame):
             self.tcSalt.Enable()
         else:
             self.tcSalt.Disable()
-        self.UpdateHash(None)
+        self.UpdateHash()
 
-    def GenSalt(self, event):
+    def GenSalt(self, _=None):
         # crypt() compatible salt
         charset = string.ascii_letters + string.digits + "./"
         salt = ''.join(random.SystemRandom().choice(charset) for _ in range(16))
         self.tcSalt.SetValue(salt)
 
-    def UpdateHash(self, event):
+    def UpdateHash(self, _=None):
         password = self.tcPassword.GetValue()
         if self.algo[1]:
             salt = self.tcSalt.GetValue()
             if len(salt) == 0:
-                self.GenSalt(None)
+                self.GenSalt()
                 salt = self.tcSalt.GetValue()
             self.tcHash.SetValue(self.algo[0](password, salt))
         else:
